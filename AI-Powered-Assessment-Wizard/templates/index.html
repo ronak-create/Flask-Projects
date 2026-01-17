@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Response Display</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.getElementById('image-form');
+
+            // Event listener for form submission to prevent default behavior
+            form.addEventListener('submit', (e) => {
+                e.preventDefault(); // Prevent default form submit behavior
+                submitForm();
+            });
+
+            // Function to handle form submission
+            function submitForm() {
+                const formData = new FormData(form);
+
+                // Send the form data to the backend via POST request
+                fetch('/process_images', {
+                    method: 'POST',
+                    body: formData,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.generated_text) {
+                        const generatedData = data.generated_text;
+                        let tableRows = '';
+
+                        // Create table rows dynamically from the response data
+                        for (let key in generatedData) {
+                            if (generatedData.hasOwnProperty(key)) {
+                                tableRows += `
+                                    <tr class="border-t">
+                                        <td class="px-6 py-3 text-gray-700 font-medium">${key}</td>
+                                        <td class="px-6 py-3 text-gray-900">${generatedData[key]}</td>
+                                    </tr>
+                                `;
+                            }
+                        }
+
+                        // Insert the rows into the table
+                        document.getElementById('data-table').innerHTML = tableRows;
+                    } else {
+                        alert('Error fetching data');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        });
+    </script>
+</head>
+
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto p-8">
+        <h1 class="text-3xl font-semibold text-center mb-6">Backend Response Display</h1>
+
+        <!-- Image upload form to trigger the backend processing -->
+        <form id="image-form" enctype="multipart/form-data">
+            <div class="mb-6">
+                <label for="images" class="block text-xl text-gray-700">Upload Images</label>
+                <input type="file" name="images" class="w-full mt-2 p-2 border rounded-lg" multiple>
+            </div>
+            <button type="submit" class="bg-blue-600 text-white p-3 rounded-lg shadow-md">Submit Images</button>
+        </form>
+
+        <!-- Display the table with generated text -->
+        <div class="overflow-x-auto bg-white shadow-lg rounded-lg mt-8">
+            <table class="min-w-full table-auto">
+                <thead>
+                    <tr class="bg-blue-600 text-white">
+                        <th class="px-6 py-3 text-left">Key</th>
+                        <th class="px-6 py-3 text-left">Response</th>
+                    </tr>
+                </thead>
+                <tbody id="data-table">
+                    <!-- Data rows will be inserted here dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>
